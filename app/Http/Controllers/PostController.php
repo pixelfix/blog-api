@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostCollection;
 use App\Http\Resources\PostResource;
 use App\Models\Category;
@@ -22,7 +23,6 @@ class PostController extends Controller
     {
         $posts =
             Post::where('featured', true)
-                ->where('active', true)
                 ->take(4)
                 ->get();
 
@@ -37,7 +37,6 @@ class PostController extends Controller
     {
         $posts =
             Post::orderBy('created_at', 'desc')
-                ->where('active', true)
                 ->take(4)
                 ->get();
 
@@ -52,7 +51,6 @@ class PostController extends Controller
     {
         $posts =
             Post::inRandomOrder()
-                ->where('active', true)
                 ->take(8)
                 ->get();
 
@@ -102,38 +100,17 @@ class PostController extends Controller
         return new PostResource($post);
     }
 
-    public function update(Request $request, Post $post)
+    public function update(UpdatePostRequest $request, Post $post)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required | max:255 | unique:posts,title,' . $post->id,
-            'excerpt' => 'required | max:255',
-            'body' => 'required',
-            'category' => 'required | exists:categories,slug',
-            'prev_article' => 'url | nullable',
-            'next_article' => 'url | nullable',
-            'image' => 'image'
-        ]);
-
-        if ($validator->fails()) {
-            return $this->customResponse($validator->getMessageBag()->all(), 400);
-        }
-
-        $fields = [
-            'title' => $request->input('title'),
-            'slug' => Str::slug($request->input('title')),
-            'excerpt' => $request->input('excerpt'),
-            'body' => $request->input('body'),
-            'category_id' => Category::where('slug', $request->input('category'))->first()->id,
-            'prev_article' => $request->input('prev_article'),
-            'next_article' => $request->input('next_article'),
-        ];
-
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('public/posts');
-            $fields['image'] = basename($path);
-        }
-
-        $post->update($fields);
+        $post
+            ->setTitle($request->title)
+            ->setExcerpt($request->excerpt)
+            ->setBody($request->body)
+            ->setCategoryId($request->category_id)
+            ->setPrevArticle($request->prev_article)
+            ->setNextArticle($request->next_article)
+            ->setImage($request)
+            ->commit();
 
         return new PostResource($post);
     }

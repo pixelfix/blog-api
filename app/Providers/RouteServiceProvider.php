@@ -39,13 +39,6 @@ class RouteServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->map();
-
-        Route::bind('activePost', function($value){
-            return
-                Post::where('slug', $value)
-                    ->where('active', true)
-                    ->firstOrFail();
-        });
     }
 
     /**
