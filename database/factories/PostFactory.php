@@ -32,6 +32,7 @@ class PostFactory extends Factory
             'next_article' => $this->faker->url(),
             'image' => 'https://picsum.photos/1200/600',
             'featured' => rand(0, 1),
+            'active' => rand(0, 1),
         ];
     }
 }
